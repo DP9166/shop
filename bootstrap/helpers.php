@@ -6,6 +6,10 @@
  * Time: 16:46
  */
 
-function test_helper() {
-    return 'ok';
+/*
+ * 将的那个强请求的路由名称转换为css类名称
+ * */
+function route_class()
+{
+    return str_replace('.', '-', Route::currentRouteName());
 }
