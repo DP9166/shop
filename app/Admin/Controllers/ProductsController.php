@@ -28,6 +28,20 @@ class ProductsController extends Controller
     }
 
     /**
+     * Edit interface.
+     *
+     * @param mixed $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit($id, Content $content)
+    {
+        return $content
+            ->header('编辑商品')
+            ->body($this->form()->edit($id));
+    }
+
+    /**
      * Create interface.
      *
      * @param Content $content
