@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Carbon\Exceptions\InvalidDateException;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -14,6 +15,7 @@ class Handler extends ExceptionHandler
      */
     protected $dontReport = [
         //
+        InvalidDateException::class,
     ];
 
     /**
