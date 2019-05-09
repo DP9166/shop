@@ -18,6 +18,10 @@ Route::get('products', 'ProductsController@index')->name('products.index');
 
 Auth::routes(['verify' => true]);
 
+
+Route::get('products', 'ProductsController@index')->name('products.index');
+Route::get('products/{product}', 'ProductsController@show')->name('products.show');
+
 Route::group(['middleware' => ['auth']], function() {
     Route::get('user_addresses', 'UserAddressesController@index')->name('user_addresses.index');
     Route::get('user_addresses/create', 'UserAddressesController@create')->name('user_addresses.create');
