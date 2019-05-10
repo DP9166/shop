@@ -20,7 +20,7 @@ Auth::routes(['verify' => true]);
 
 
 Route::get('products', 'ProductsController@index')->name('products.index');
-Route::get('products/{product}', 'ProductsController@show')->name('products.show');
+Route::get('products/{product}', 'ProductsController@show')->name('products.show')->where(['product' => '[0-9]+']);
 
 Route::group(['middleware' => ['auth']], function() {
     Route::get('user_addresses', 'UserAddressesController@index')->name('user_addresses.index');
@@ -34,4 +34,10 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('products/{product}/favorite', 'ProductsController@favor')->name('products.favor');
     Route::delete('products/{product}/favorite', 'ProductsController@disfavor')->name('products.disfavor');
 
+    Route::get('products/favorites', 'ProductsController@favorites')->name('products.favorites');
+
+    // 购物车
+    Route::get('cart', 'CartController@index')->name('cart.index');
+    Route::post('cart', 'CartController@add')->name('cart.add');
+    Route::delete('cart/{sku}', 'CartController@remove')->name('cart.remove')->where(['sku' => '[0-9]+']);
 });
