@@ -50,6 +50,33 @@
                         @endforeach
                         </tbody>
                     </table>
+                    <!-- 开始 -->
+                    <div>
+                        <form class="form-horizontal" role="form" id="order-form">
+                            <div class="form-group row">
+                                <label class="col-form-label col-sm-3 text-md-right">选择收货地址</label>
+                                <div class="col-sm-9 col-md-7">
+                                    <select class="form-control" name="address">
+                                        @foreach($addresses as $address)
+                                            <option value="{{ $address->id }}">{{ $address->full_address }} {{ $address->contact_name }} {{ $address->contact_phone }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-sm-3 text-md-right">备注</label>
+                                <div class="col-sm-9 col-md-7">
+                                    <textarea name="remark" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="offset-sm-3 col-sm-3">
+                                    <button type="button" class="btn btn-primary btn-create-order">提交订单</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- 结束 -->
                 </div>
             </div>
         </div>
@@ -59,6 +86,25 @@
 @section('scriptsAfterJs')
     <script>
         $(document).ready(function () {
+
+            // 创建订单
+            $('.btn-create-order').click(function () {
+               var req = {
+                   address_id: $('#order-form').find('select[name=address]').val(),
+                   items: [],
+                   remark: $('#order-form').find('textarea[name=remark]').val()
+               };
+               // 遍历<table>标签所有带有data-id 属性的<tr>标签
+                $('table tr[data-id]').each(function() {
+                    var $checkbox = $(this).find('input[name=select][type=checkbox]');
+                    if ($checkbox.prop('disabled') || !$checkbox.prop('checked')) {
+                        return ;
+                    }
+                    //  -------- 待续
+                })
+            });
+
+
            // 全选
            $('#select-all').change(function () {
               let checked = $(this).prop('checked');
