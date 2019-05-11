@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderPaid;
 use App\Exceptions\InvalidRequestException;
 use Carbon\Carbon;
 use Endroid\QrCode\QrCode;
@@ -37,6 +38,8 @@ class PaymentController extends Controller
             'payment_method'    => 'wechat', // 支付方式
             'payment_no'        => $data->transaction_id, // 支付订单号
         ]);
+
+        $this->afterPaid($order);
         return app('wechat_pay')->success();
     }
 
@@ -56,6 +59,8 @@ class PaymentController extends Controller
             'payment_method'    => 'alipay', // 支付方式
             'payment_no'        => $data->trade_no, // 支付订单号
         ]);
+
+        $this->afterPaid($order);
         return app('alipay')->success();
     }
 
@@ -89,5 +94,10 @@ class PaymentController extends Controller
             'total_amount'  => $order->total_amount, // 订单金额
             'subject'       => '支付 Laravel Shop 的订单'. $order->no, // 订单标题
         ]);
+    }
+
+    protected function afterPaid(Order $order)
+    {
+        event(new OrderPaid($order));
     }
 }
