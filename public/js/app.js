@@ -53613,8 +53613,8 @@ Vue.component('user-addresses-create-and-edit', {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/duanpei/Documents/duan/shop/resources/js/app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! /Users/duanpei/Documents/duan/shop/resources/sass/app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! /home/vagrant/Code/shop/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /home/vagrant/Code/shop/resources/sass/app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

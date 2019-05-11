@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\ProductSku;
+use Illuminate\Validation\Rule;
 
 class OrderRequest extends Request
 {
@@ -32,7 +33,7 @@ class OrderRequest extends Request
                         return $fail('该商品已售完');
                     }
                     // 获取当前索引
-                    preg_match('/items\.(\d+)\.sku_id', $attribute, $m);
+                    preg_match('/items\.(\d+)\.sku_id/', $attribute, $m);
                     $index = $m[1];
                     // 根据索引找到用户所提交的购买数量
                     $amount = $this->input('items')[$index]['amount'];

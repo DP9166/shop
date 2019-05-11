@@ -100,8 +100,37 @@
                     if ($checkbox.prop('disabled') || !$checkbox.prop('checked')) {
                         return ;
                     }
-                    //  -------- 待续
-                })
+                    // 获取当前行中数量输入框
+                    var $input = $(this).find('input[name=amount]');
+                    // 如果用户将数量设为 0 或者不是一个数字，则也跳过
+                    if ($input.val() == 0 || isNaN($input.val())) {
+                        return;
+                    }
+                    // 把 SKU id 和数量存入请求参数数组中
+                    req.items.push({
+                        sku_id: $(this).data('id'),
+                        amount: $input.val(),
+                    })
+                });
+                axios.post('{{ route('orders.store') }}', req)
+                    .then(function (response) {
+                        swal('订单提交成功', '', 'success');
+                    }, function (error) {
+                        if (error.response.status === 422) {
+                            // http 状态码为 422 代表用户输入校验失败
+                            var html = '<div>';
+                            _.each(error.response.data.errors, function (errors) {
+                                _.each(errors, function (error) {
+                                    html += error+'<br>';
+                                })
+                            });
+                            html += '</div>';
+                            swal({content: $(html)[0], icon: 'error'})
+                        } else {
+                            // 其他情况应该是系统挂了
+                            swal('系统错误', '', 'error');
+                        }
+                    });
             });
 
 
