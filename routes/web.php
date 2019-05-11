@@ -39,5 +39,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('cart', 'CartController@add')->name('cart.add');
     Route::delete('cart/{sku}', 'CartController@remove')->name('cart.remove')->where(['sku' => '[0-9]+']);
 
+    // 订单
+    Route::get('orders', 'OrdersController@index')->name('orders.index');
     Route::post('orders', 'OrdersController@store')->name('orders.store');
+    Route::get('orders/{order}', 'OrdersController@show')->name('orders.show')->where(['order' => '[0-9]+']);
 });
