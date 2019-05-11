@@ -43,4 +43,10 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('orders', 'OrdersController@index')->name('orders.index');
     Route::post('orders', 'OrdersController@store')->name('orders.store');
     Route::get('orders/{order}', 'OrdersController@show')->name('orders.show')->where(['order' => '[0-9]+']);
+
+    // 支付
+    Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
+    Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay')->where(['order' => '[0-9]+']);
 });
+
+Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify'); // 阿里云服务端回调
