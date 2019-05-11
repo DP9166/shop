@@ -47,6 +47,8 @@ Route::group(['middleware' => ['auth']], function() {
     // 支付
     Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
     Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay')->where(['order' => '[0-9]+']);
+    Route::get('payment/{order}/wechat', 'PaymentController@payByWechat')->name('payment.wechat')->where(['order' => '[0-9]+']);
 });
 
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify'); // 阿里云服务端回调
+Route::post('payment/wechat/notify', 'PaymentController@wechatNotify')->name('payment.wechat.notify'); // 微信服务端回调
