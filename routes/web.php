@@ -44,10 +44,17 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('orders', 'OrdersController@store')->name('orders.store');
     Route::get('orders/{order}', 'OrdersController@show')->name('orders.show')->where(['order' => '[0-9]+']);
 
+    Route::post('orders/{order}/received', 'OrdersController@recevied')->name('orders.received')->where(['order' => '[0-9]+']);
+
+    Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review')->where(['order' => '[0-9]+']); // 评分界面
+    Route::post('orders/{order}/review', 'OrdersController@sendReview')->name('orders.review.store'); // 评分API
+
     // 支付
     Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
     Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay')->where(['order' => '[0-9]+']);
     Route::get('payment/{order}/wechat', 'PaymentController@payByWechat')->name('payment.wechat')->where(['order' => '[0-9]+']);
+
+
 });
 
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify'); // 阿里云服务端回调
