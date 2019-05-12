@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Validation\Rule;
 
-class SendReviewRequest extends  Request
+class SendReviewRequest extends Request
 {
     /**
      * Get the validation rules that apply to the request.

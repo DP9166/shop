@@ -3,6 +3,7 @@
 namespace App\Admin\Controllers;
 
 use App\Exceptions\InvalidRequestException;
+use App\Http\Requests\Admin\HandleRefundRequest;
 use App\Models\Order;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -70,6 +71,49 @@ class OrdersController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    public function handleRefund(Order $order, HandleRefundRequest $request)
+    {
+        if ($order->refund_status !== Order::REFUND_STATUS_APPLIED) {
+            throw new InvalidRequestException('订单状态不正确');
+        }
+        // 同意退款
+        if ($request->input('agree')) {
+            $extra = $order->extra ?: [];
+            unset($extra['refund_disagree_reason']);
+            $order->update(['extra' => $extra]);
+            // 调用退款逻辑
+            $this->_refundOrder($order);
+        }
+
+        $extra = $order->extra ? : [];
+        $extra['refund_disagree_reason'] = $request->input('reason');
+        // 将订单的退款状态改为未退款
+        $order->update([
+            'refund_status'     => Order::REFUND_STATUS_PENDING,
+            'extra'             => $extra,
+        ]);
+
+        return $order;
+    }
+
+    protected function _refundOrder(Order $order)
+    {
+        //判断支付方式
+        switch ($order->payment_method) {
+            case 'wechat':
+                // TODO...
+                break;
+            case 'alipay':
+                $refundNo = Order::getAvailableRefundNo();
+                $ret = app('alipay')->refund([
+                    'out_trade_no'      => $order->no,
+                    'refund_amount'     => $order->total_amount,
+                    'out_request_no'    => $refundNo,
+                ]);
+
+        }
     }
 
     /**

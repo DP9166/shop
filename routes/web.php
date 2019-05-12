@@ -48,6 +48,7 @@ Route::group(['middleware' => ['auth']], function() {
 
     Route::get('orders/{order}/review', 'OrdersController@review')->name('orders.review')->where(['order' => '[0-9]+']); // 评分界面
     Route::post('orders/{order}/review', 'OrdersController@sendReview')->name('orders.review.store'); // 评分API
+    Route::post('orders/{order}/apply_refund', 'OrdersController@applyRefund')->name('orders.apply_refund'); // 退款
 
     // 支付
     Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
