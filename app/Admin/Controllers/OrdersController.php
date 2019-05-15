@@ -2,6 +2,7 @@
 
 namespace App\Admin\Controllers;
 
+use App\Exceptions\InternalException;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\Admin\HandleRefundRequest;
 use App\Models\Order;
@@ -85,6 +86,8 @@ class OrdersController extends Controller
             $order->update(['extra' => $extra]);
             // 调用退款逻辑
             $this->_refundOrder($order);
+
+            return $order;
         }
 
         $extra = $order->extra ? : [];
@@ -112,7 +115,26 @@ class OrdersController extends Controller
                     'refund_amount'     => $order->total_amount,
                     'out_request_no'    => $refundNo,
                 ]);
-
+                if ($ret->sub_code) {
+                    // 将退款失败的保存存入 extra 字段
+                    $extra = $order->extra;
+                    $extra['refund_failed_code'] = $ret->sub_code;
+                    // 将订单的退款状态标记为退款失败
+                    $order->update([
+                        'refund_no' => $refundNo,
+                        'refund_status' => Order::REFUND_STATUS_FAILED,
+                        'extra' => $extra,
+                    ]);
+                } else {
+                    $order->update([
+                        'refund_no' => $refundNo,
+                        'refund_status' => Order::REFUND_STATUS_SUCCESS,
+                    ]);
+                }
+                break;
+            default:
+                throw new InternalException('未知订单的支付方式'.$order->payment_method);
+                break;
         }
     }
 
