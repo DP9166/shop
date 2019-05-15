@@ -74,6 +74,11 @@ class Order extends Model
         });
     }
 
+    public function couponCode()
+    {
+        return $this->belongsTo(CouponCode::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -119,4 +119,28 @@ class OrdersController extends Controller
 
         return $order;
     }
+
+    public function wechatRefundNotify()
+    {
+        $failXml = '<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[FAIL]]></return_msg></xml>';
+        $data = app('wechat_pay')->verify(null, true);
+
+        if (!$order = Order::where('no', $data['out_trade_no'])->first()) {
+            return $failXml;
+        }
+
+        if ($data['refund_status'] === 'SUCCESS') {
+            $order->update([
+                'refund_status' =>  Order::REFUND_STATUS_SUCCESS
+            ]);
+        } else {
+            $extra = $order->extra;
+            $extra['refund_failed_code'] = $data['refund_status'];
+            $order->update([
+                'refund_status' => Order::REFUND_STATUS_FAILED,
+                'extra' => $extra
+            ]);
+        }
+        return app('wechat_pay')->success();
+    }
 }
