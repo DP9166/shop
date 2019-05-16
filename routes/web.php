@@ -57,6 +57,8 @@ Route::group(['middleware' => ['auth']], function() {
 
     Route::get('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotify')->name('payment.wechat.refund_notify');
 
+    Route::get('coupon_codes/{code}', 'CouponCodesController@show')->name('coupon_codes.show');
+
 
 });
 

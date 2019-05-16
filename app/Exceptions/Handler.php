@@ -16,6 +16,7 @@ class Handler extends ExceptionHandler
     protected $dontReport = [
         //
         InvalidDateException::class,
+        CouponCodeUnavailableException::class,
     ];
 
     /**
