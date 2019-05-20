@@ -43,6 +43,12 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
+    // 获取所有祖先类目的ID值
+    public function getPathIdsAttribute()
+    {
+        return array_filter(explode('-', trim($this->path, '-')));
+    }
+
     // 获取所有祖先类目并按层级排序
     public function getAncestorsAttribute()
     {
