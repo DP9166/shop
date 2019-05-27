@@ -10,16 +10,6 @@ use Illuminate\Validation\Rule;
 class CrowdFundingOrderRequest extends Request
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-    public function authorize()
-    {
-        return false;
-    }
-
-    /**
      * Get the validation rules that apply to the request.
      *
      * @return array
@@ -54,7 +44,7 @@ class CrowdFundingOrderRequest extends Request
             'amount'        => ['required', 'integer', 'min:1'],
             'address_id'    => [
                 'required',
-                Rule::exists('user_address', 'id')->where('user_id', $this->user()->id),
+                Rule::exists('user_addresses', 'id')->where('user_id', $this->user()->id),
             ],
         ];
     }

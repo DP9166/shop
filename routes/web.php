@@ -59,7 +59,8 @@ Route::group(['middleware' => ['auth']], function() {
 
     Route::get('coupon_codes/{code}', 'CouponCodesController@show')->name('coupon_codes.show');
 
-
+    // 众筹
+    Route::post('crowdfunding_orders', 'OrdersController@crowdfunding')->name('crowdfunding_orders.store');
 });
 
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify'); // 阿里云服务端回调

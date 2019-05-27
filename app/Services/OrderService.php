@@ -99,7 +99,7 @@ class OrderService
             $order->user()->associate($user);
             $order->save();
             // 创建一个新的订单项并与 SKU 关联
-            $item = $order->times()->make([
+            $item = $order->items()->make([
                 'amount'    =>  $amount,
                 'price'     =>  $sku->price,
             ]);
@@ -117,7 +117,6 @@ class OrderService
         $crowdfundingTtl = $sku->product->crowdfunding->end_at->getTimestamp() - time();
         // 剩余秒数与默认订单关闭时间取最小值作为订单关闭时间
         dispatch(new CloseOrder($order, min(config('app.order_ttl'), $crowdfundingTtl)));
-
         return $order;
     }
 }
