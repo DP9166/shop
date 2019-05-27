@@ -62,6 +62,10 @@ Route::group(['middleware' => ['auth']], function() {
 
     // 众筹
     Route::post('crowdfunding_orders', 'OrdersController@crowdfunding')->name('crowdfunding_orders.store');
+
+    // 分期
+    Route::get('installments', 'InstallmentsController@index')->name('installments.index');
+    Route::get('installments/{installment}', 'InstallmentsController@show')->name('installments.show');
 });
 
 Route::post('payment/alipay/notify', 'PaymentController@alipayNotify')->name('payment.alipay.notify'); // 阿里云服务端回调
