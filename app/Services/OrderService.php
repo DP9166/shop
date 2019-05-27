@@ -47,7 +47,6 @@ class OrderService
                 $item = $order->items()->make([
                     'amount' => $data['amount'],
                     'price'  => $sku->price,
-                    'type'   => Order::TYPE_CROWDFUNDING,
                 ]);
                 $item->product()->associate($sku->product_id);
                 $item->productSku()->associate($sku);
@@ -96,6 +95,7 @@ class OrderService
                 ],
                 'remark'        =>  '',
                 'total_amount'  =>  $sku->price * $amount,
+                'type'          =>  Order::TYPE_CROWDFUNDING,
             ]);
             // 订单关联到当前用户
             $order->user()->associate($user);
