@@ -14,7 +14,7 @@ function route_class()
     return str_replace('.', '-', Route::currentRouteName());
 }
 
-
+// 内网穿透
 function ngrok_url($routeName, $parameters = [])
 {
     if (app()->environment('local') && $url = config('app.ngrok_url')) {
@@ -22,4 +22,12 @@ function ngrok_url($routeName, $parameters = [])
     }
 
     return route($routeName, $parameters);
+}
+
+/*
+ *  默认的精度为小数点后两位
+ * */
+function big_number($number, $scale = 2)
+{
+    return new \Moontoast\Math\BigNumber($number, $scale);
 }

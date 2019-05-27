@@ -14,7 +14,19 @@ class CreateInstallmentItemsTable extends Migration
     public function up()
     {
         Schema::create('installment_items', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
+            $table->unsignedInteger('installment_id');
+            $table->foreign('installment_id')->references('id')
+                ->on('installments')->onDelete('cascade');
+            $table->unsignedInteger('sequence');
+            $table->decimal('base');
+            $table->decimal('fee');
+            $table->decimal('fine')->nullable();
+            $table->dateTime('due_date');
+            $table->dateTime('paid_at')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->string('payment_no')->nullable();
+            $table->string('refund_status')->default(\App\Models\InstallmentItem::REFUND_STATUS_PENDING);
             $table->timestamps();
         });
     }
