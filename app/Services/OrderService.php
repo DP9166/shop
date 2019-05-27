@@ -32,8 +32,9 @@ class OrderService
                     'contact_name'  => $address->contact_name,
                     'contact_phone' => $address->contact_phone,
                 ],
-                'remark' => $remark,
+                'remark'        => $remark,
                 'total_amount'  => 0,
+                'type'          => Order::TYPE_NORMAL,
             ]);
             // 订单关联到当前用户
             $order->user()->associate($user);
@@ -45,7 +46,8 @@ class OrderService
                 $sku = ProductSku::find($data['sku_id']);
                 $item = $order->items()->make([
                     'amount' => $data['amount'],
-                    'price'  => $sku->price
+                    'price'  => $sku->price,
+                    'type'   => Order::TYPE_CROWDFUNDING,
                 ]);
                 $item->product()->associate($sku->product_id);
                 $item->productSku()->associate($sku);
