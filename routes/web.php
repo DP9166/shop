@@ -54,6 +54,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('payment/alipay/return', 'PaymentController@alipayReturn')->name('payment.alipay.return');
     Route::get('payment/{order}/alipay', 'PaymentController@payByAlipay')->name('payment.alipay')->where(['order' => '[0-9]+']);
     Route::get('payment/{order}/wechat', 'PaymentController@payByWechat')->name('payment.wechat')->where(['order' => '[0-9]+']);
+    Route::post('payment/{order}/installment', 'PaymentController@payByInstallment')->name('payment.installment')->where(['order' => '[0-9]+']);
 
     Route::get('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotify')->name('payment.wechat.refund_notify');
 
