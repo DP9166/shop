@@ -7,6 +7,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Models\Installment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InstallmentsController extends Controller
 {
@@ -56,56 +57,69 @@ class InstallmentsController extends Controller
     public function alipayReturn()
     {
         try {
-            app('alipay')->verity();
+            app('alipay')->verify();
         } catch (\Exception $e) {
             return view('pages.error', ['msg' => '数据不正确']);
         }
         return view('pages.success', ['msg' =>  '付款成功']);
     }
 
+    // 支付宝后端回调
     public function alipayNotify()
     {
+        // 校验支付宝回调参数是否正确
         $data = app('alipay')->verify();
-
+        Log::info($data);
+        // 如果订单状态不是成功或者结束，则不走后续的逻辑
         if (!in_array($data->trade_status, ['TRADE_SUCCESS', 'TRADE_FINISHED'])) {
             return app('alipay')->success();
         }
-
-        // 还原还款是哪个分期付款的哪个还款计划
+        // 拉起支付时使用的支付订单号是由分期流水号 + 还款计划编号组成的
+        // 因此可以通过支付订单号来还原出这笔还款是哪个分期付款的哪个还款计划
         list($no, $sequence) = explode('_', $data->out_trade_no);
-        // 根据分期流水号查询对应的分期记录
+        // 根据分期流水号查询对应的分期记录，原则上不会找不到，这里的判断只是增强代码健壮性
         if (!$installment = Installment::where('no', $no)->first()) {
             return 'fail';
         }
-        // 根据还款计划编号查询讯对应的还款计划
+        // 根据还款计划编号查询对应的还款计划，原则上不会找不到，这里的判断只是增强代码健壮性
         if (!$item = $installment->items()->where('sequence', $sequence)->first()) {
             return 'fail';
         }
+        // 如果这个还款计划的支付状态是已支付，则告知支付宝此订单已完成，并不再执行后续逻辑
         if ($item->paid_at) {
             return app('alipay')->success();
         }
 
-        \DB::transcation(function () use ($data, $no, $installment, $item) {
-           $item->update([
-               'paid_at'            =>  Carbon::now(), // 支付时间
-               'payment_method'     =>  'alipay',   // 支付方式
-               'payment_no'         =>  $data->trade_no, // 支付宝订单号
-           ]);
+        // 使用事务，保证数据一致性
+        \DB::transaction(function () use ($data, $no, $installment, $item) {
+            // 更新对应的还款计划
+            $item->update([
+                'paid_at'        => Carbon::now(), // 支付时间
+                'payment_method' => 'alipay', // 支付方式
+                'payment_no'     => $data->trade_no, // 支付宝订单号
+            ]);
 
-           if ($item->sequence === 0) {
-               $installment->update(['status'  =>  Installment::STATUS_PEPAYING]);
-               $installment->order->update([
-                   'paid_at'        => Carbon::now(),
-                   'payment_method' => 'installment',
-                   'payment_no'     => $no,
-               ]);
-               event(new OrderPaid($installment->order)); // 触发商品订单已支付的事件
-           }
+            // 如果这是第一笔还款
+            if ($item->sequence === 0) {
+                // 将分期付款的状态改为还款中
+                $installment->update(['status' => Installment::STATUS_REPAYING]);
+                // 将分期付款对应的商品订单状态改为已支付
+                $installment->order->update([
+                    'paid_at'        => Carbon::now(),
+                    'payment_method' => 'installment', // 支付方式为分期付款
+                    'payment_no'     => $no, // 支付订单号为分期付款的流水号
+                ]);
+                // 触发商品订单已支付的事件
+                event(new OrderPaid($installment->order));
+            }
 
-           if ($item->sequencec === $installment->count - 1) {
-               $installment->update(['status'   => Installment::STATUS_FINISHED]);
-           }
+            // 如果这是最后一笔还款
+            if ($item->sequence === $installment->count - 1) {
+                // 将分期付款状态改为已结清
+                $installment->update(['status' => Installment::STATUS_FINISHED]);
+            }
         });
+
         return app('alipay')->success();
     }
 

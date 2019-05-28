@@ -102,14 +102,3 @@
         </div>
     </div>
 @endsection
-
-@section('scriptsAfterJs')
-    <script>
-        $('.btn-select-installment').click(function () {
-            axios.post('{{ route('payment.installment', ['order' => $order->id]) }}', { count: $(this).data('count') })
-                .then(function (response) {
-                    location.href = '/installments/' + response.data.id;
-                })
-        });
-    </script>
-@endsection
