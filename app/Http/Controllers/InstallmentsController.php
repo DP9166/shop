@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Events\OrderPaid;
 use App\Exceptions\InvalidRequestException;
 use App\Models\Installment;
+use App\Models\InstallmentItem;
+use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InstallmentsController extends Controller
 {
@@ -14,6 +17,7 @@ class InstallmentsController extends Controller
     {
         $installments = Installment::query()
             ->where('user_id', $request->user()->id)
+            ->orderByDesc('id')
             ->paginate(10);
 
         return view('installments.index', ['installments' => $installments]);
@@ -56,11 +60,13 @@ class InstallmentsController extends Controller
     public function alipayReturn()
     {
         try {
-            app('alipay')->verity();
+            app('alipay')->verify();
         } catch (\Exception $e) {
+            Log::info($e);
             return view('pages.error', ['msg' => '数据不正确']);
         }
-        return view('pages.success', ['msg' =>  '付款成功']);
+
+        return view('pages.success', ['msg' => '付款成功']);
     }
 
     public function alipayNotify()
@@ -85,7 +91,7 @@ class InstallmentsController extends Controller
             return app('alipay')->success();
         }
 
-        \DB::transcation(function () use ($data, $no, $installment, $item) {
+        \DB::transaction(function () use ($data, $no, $installment, $item) {
            $item->update([
                'paid_at'            =>  Carbon::now(), // 支付时间
                'payment_method'     =>  'alipay',   // 支付方式
@@ -93,7 +99,7 @@ class InstallmentsController extends Controller
            ]);
 
            if ($item->sequence === 0) {
-               $installment->update(['status'  =>  Installment::STATUS_PEPAYING]);
+               $installment->update(['status'  =>  Installment::STATUS_REPAYING]);
                $installment->order->update([
                    'paid_at'        => Carbon::now(),
                    'payment_method' => 'installment',
@@ -107,6 +113,46 @@ class InstallmentsController extends Controller
            }
         });
         return app('alipay')->success();
+    }
+
+    public function wechatRefundNotify(Request $request)
+    {
+        // 给微信的失败响应
+        $failXml = '<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[FAIL]]></return_msg></xml>';
+        // 校验微信回调参数
+        $data = app('wechat_pay')->verify(null, true);
+        // 根据单号拆解出对应的商品退款单号及对应的还款计划序号
+        list($no, $sequence) = explode('_', $data['out_refund_no']);
+
+        $item = InstallmentItem::query()
+            ->whereHas('installment', function ($query) use ($no) {
+                $query->whereHas('order', function ($query) use ($no) {
+                    $query->where('refund_no', $no); // 根据订单表的退款流水号找到对应还款计划
+                });
+            })
+            ->where('sequence', $sequence)
+            ->first();
+
+        // 没有找到对应的订单，原则上不可能发生，保证代码健壮性
+        if (!$item) {
+            return $failXml;
+        }
+
+        // 如果退款成功
+        if ($data['refund_status'] === 'SUCCESS') {
+            // 将还款计划退款状态改成退款成功
+            $item->update([
+                'refund_status' => InstallmentItem::REFUND_STATUS_SUCCESS,
+            ]);
+            $item->installment->refreshRefundStatus();
+        } else {
+            // 否则将对应还款计划的退款状态改为退款失败
+            $item->update([
+                'refund_status' => InstallmentItem::REFUND_STATUS_FAILED,
+            ]);
+        }
+
+        return app('wechat_pay')->success();
     }
 
 }

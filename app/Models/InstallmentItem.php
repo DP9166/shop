@@ -10,13 +10,14 @@ class InstallmentItem extends Model
     const REFUND_STATUS_PENDING     =   'pending';
     const REFUND_STATUS_PROCESSING  =   'processing';
     const REFUND_STATUS_SUCCESS     =   'success';
-    const REFUND_STATUS_FAILD       =   'failed';
+    const REFUND_STATUS_FAILED       =   'failed';
+
 
     public static $refundStatusMap = [
         self::REFUND_STATUS_PENDING     =>  '未还款',
         self::REFUND_STATUS_PROCESSING  =>  '还款中',
         self::REFUND_STATUS_SUCCESS     =>  '还款成功',
-        self::REFUND_STATUS_FAILD       =>  '还款失败',
+        self::REFUND_STATUS_FAILED       =>  '还款失败',
     ];
 
     protected $fillable = [

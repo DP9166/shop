@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Installment extends Model
 {
     const STATUS_PENDING = 'pending';
-    const STATUS_PEPAYING = 'repaying';
+    const STATUS_REPAYING = 'repaying';
     const STATUS_FINISHED = 'finished';
 
     public static $statusMap = [
         self::STATUS_PENDING => '未执行',
-        self::STATUS_PEPAYING => '还款中',
+        self::STATUS_REPAYING => '还款中',
         self::STATUS_FINISHED => '已完成',
     ];
 
@@ -60,5 +60,26 @@ class Installment extends Model
         }
         \Log::waring(sprintf('find installment no failed'));
         return false;
+     }
+
+     // 判断当前付款所有计划是否全部退款成功
+     public function refreshRefundStatus()
+     {
+         // 设定一个标志位
+         $allSuccess = true;
+         $this->load(['items']);
+
+         foreach ($this->items as $item) {
+             if ($item->paid_at && $item->refund_status !== InstallmentItem::REFUND_STATUS_SUCCESS) {
+                 $allSuccess = false;
+                 break;
+             }
+         }
+         // 如果所有退款都成功，则将对应商品订单的退款状态修改为退款成功
+         if ($allSuccess) {
+             $this->order->update([
+                 'refund_status' => Order::REFUND_STATUS_SUCCESS,
+             ]);
+         }
      }
 }
