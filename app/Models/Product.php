@@ -38,6 +38,11 @@ class Product extends Model
         return $this->hasOne(CrowdfundingProduct::class);
     }
 
+    public function properties()
+    {
+        return $this->hasMany(ProductProperty::class);
+    }
+
     public function getImageUrlAttribute()
     {
         if (Str::startsWith($this->attributes['image'], ['http://', 'https://'])) {
