@@ -50,4 +50,12 @@ class Product extends Model
         }
         return \Storage::disk('public')->url($this->attributes['image']);
     }
+
+    public function getGroupPropertiesAttribute()
+    {
+        return $this->properties->groupBy('name')
+            ->map(function ($properties) {
+                return $properties->pluck('value')->all();
+            });
+    }
 }
