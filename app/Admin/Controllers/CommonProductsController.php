@@ -83,6 +83,7 @@ abstract class CommonProductsController extends Controller
         // 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
         $form->hidden('type')->value($this->getProductType());
         $form->text('title', '商品名称')->rules('required');
+        $form->text('long_title', '商品长标题')->rules('required');
         $form->select('category_id', '类目')->options(function ($id) {
             $category = Category::find($id);
             if ($category) {
