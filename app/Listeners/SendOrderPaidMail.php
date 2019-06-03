@@ -18,7 +18,7 @@ class SendOrderPaidMail implements ShouldQueue
     public function handle(OrderPaid $event)
     {
         //
-        $order = $event->getOrder();
-        $order->user->notify(new OrderPaidNotification($order));
+//        $order = $event->getOrder();
+//        $order->user->notify(new OrderPaidNotification($order));
     }
 }

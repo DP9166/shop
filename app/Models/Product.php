@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -18,7 +19,7 @@ class Product extends Model
 
 
     protected $fillable = [
-        'title', 'description', 'image', 'on_sale',
+        'title', 'long_title', 'description', 'image', 'on_sale',
         'rating', 'sold_count', 'review_count', 'price', 'type'
     ];
     protected $casts = [ 'on_sale' => 'boolean' ];
@@ -38,11 +39,52 @@ class Product extends Model
         return $this->hasOne(CrowdfundingProduct::class);
     }
 
+    public function properties()
+    {
+        return $this->hasMany(ProductProperty::class);
+    }
+
     public function getImageUrlAttribute()
     {
         if (Str::startsWith($this->attributes['image'], ['http://', 'https://'])) {
             return $this->attributes['image'];
         }
         return \Storage::disk('public')->url($this->attributes['image']);
+    }
+
+    public function getGroupPropertiesAttribute()
+    {
+        return $this->properties->groupBy('name')
+            ->map(function ($properties) {
+                return $properties->pluck('value')->all();
+            });
+    }
+
+    public function toESArray()
+    {
+        $arr = Arr::only($this->toArray(), [
+            'id',
+            'type',
+            'title',
+            'category_id',
+            'long_title',
+            'on_sale',
+            'rating',
+            'sold_count',
+            'review_count',
+            'price'
+        ]);
+
+        $arr['category'] = $this->category ? explode(' - ', $this->category->full_name) : '';
+        $arr ['category_path'] = $this->category ? $this->category->path: '';
+        $arr['description'] = strip_tags($this->description);
+        $arr['sku'] = $this->skus->map(function (ProductSku $sku) {
+            return Arr::only($sku->toArray(), ['title', 'description', 'price']);
+        });
+        $arr['properties'] = $this->properties->map(function (ProductProperty $property) {
+            return Arr::only($property->toArray(), ['name', 'value']);
+        });
+
+        return $arr;
     }
 }

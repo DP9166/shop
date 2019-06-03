@@ -15,6 +15,7 @@
                             <th>期数</th>
                             <th>费率</th>
                             <th>状态</th>
+                            <th>创建时间</th>
                             <th>操作</th>
                         </tr>
                         </thead>
@@ -26,6 +27,7 @@
                                 <td>{{ $installment->count }}</td>
                                 <td>{{ $installment->fee_rate }}%</td>
                                 <td>{{ \App\Models\Installment::$statusMap[$installment->status] }}</td>
+                                <td>{{ $installment->created_at }}</td>
                                 <td><a class="btn btn-primary btn-sm" href="{{ route('installments.show', ['installment' => $installment->id]) }}">查看</a></td>
                             </tr>
                         @endforeach

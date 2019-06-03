@@ -7,12 +7,15 @@ namespace App\Admin\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 
 abstract class CommonProductsController extends Controller
 {
+    use HasResourceActions;
+    
     abstract public function getProductType();
 
     /**
@@ -80,6 +83,7 @@ abstract class CommonProductsController extends Controller
         // 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
         $form->hidden('type')->value($this->getProductType());
         $form->text('title', '商品名称')->rules('required');
+        $form->text('long_title', '商品长标题')->rules('required');
         $form->select('category_id', '类目')->options(function ($id) {
             $category = Category::find($id);
             if ($category) {
@@ -99,6 +103,12 @@ abstract class CommonProductsController extends Controller
             $form->text('price', '单价')->rules('required|numeric|min:0.01');
             $form->text('stock', '剩余库存')->rules('required|integer|min:0');
         });
+
+        $form->hasMany('properties', '商品属性', function (Form\NestedForm $form) {
+            $form->text('name', '属性名')->rules('required');
+            $form->text('value', '属性值')->rules('required');
+        });
+
         $form->saving(function (Form $form) {
             $form->model()->price = collect($form->input('skus'))->where(Form::REMOVE_FLAG_NAME, 0)->min('price');
         });

@@ -2,11 +2,9 @@
 
 namespace App\Admin\Controllers;
 
-use App\Models\Category;
 use App\Models\Product;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Show;
 
 class ProductsController extends CommonProductsController
 {

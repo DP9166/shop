@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\CouponCodeUnavailableException;
+use App\Exceptions\InternalException;
 use App\Exceptions\InvalidRequestException;
 use App\Jobs\CloseOrder;
 use App\Jobs\RefundInstallmentOrder;
@@ -20,9 +21,7 @@ class OrderService
         if ($couponCode) {
             $couponCode->checkAvailable($user);
         }
-
         $order = \DB::transaction(function () use ($user, $address, $remark, $items, $couponCode) {
-
             // 更新此地址的最后时间
             $address->update(['last_used_at' => Carbon::now()]);
             // 创建一个订单
@@ -41,7 +40,6 @@ class OrderService
             $order->user()->associate($user);
             // 写入数据库
             $order->save();
-
             $totalAmount = 0;
             foreach ($items as $data) {
                 $sku = ProductSku::find($data['sku_id']);
@@ -53,12 +51,10 @@ class OrderService
                 $item->productSku()->associate($sku);
                 $item->save();
                 $totalAmount += $sku->price * $data['amount'];
-
                 if ($sku->decreaseStock($data['amount']) <= 0) {
                     throw new InvalidRequestException('该商品库存不足');
                 }
             }
-
             if ($couponCode) {
                 $couponCode->checkAvailable($user, $totalAmount);
                 $totalAmount = $couponCode->getAdjustedPrice($totalAmount);
@@ -67,10 +63,8 @@ class OrderService
                     throw new CouponCodeUnavailableException('该优惠券已被兑完');
                 }
             }
-
             // 更新订单总金额
             $order->update(['total_amount' => $totalAmount]);
-
             // 将下单的商品从购物车中移除
             $skuIds = collect($items)->pluck('sku_id');
             app(CartService::class)->remove($skuIds);
@@ -79,7 +73,6 @@ class OrderService
         dispatch(new CloseOrder($order, config('app.order_ttl')));
         return $order;
     }
-
     // 众筹下单逻辑
     public function crowdfunding(User $user, UserAddress $address, ProductSku $sku, $amount)
     {
@@ -115,14 +108,12 @@ class OrderService
             }
             return $order;
         });
-
         // 众筹结束时间减去当前时间得到剩余秒数
         $crowdfundingTtl = $sku->product->crowdfunding->end_at->getTimestamp() - time();
         // 剩余秒数与默认订单关闭时间取最小值作为订单关闭时间
         dispatch(new CloseOrder($order, min(config('app.order_ttl'), $crowdfundingTtl)));
         return $order;
     }
-
     // 退款
     public function refundOrder(Order $order)
     {
@@ -138,7 +129,6 @@ class OrderService
                     'out_refund_no' =>  $refundNo,
                     'notify_url'    =>  ngrok_url('payment.wechat.refund_notify')
                 ]);
-
                 $order->update([
                     'refund_no'     =>  $refundNo,
                     'refund_status' =>  Order::REFUND_STATUS_PROCESSING
@@ -170,10 +160,9 @@ class OrderService
                 break;
             case 'installment':
                 $order->update([
-                    'refund_no' =>  Order::getAvailableRefundNo(),
+                    'refund_no'     =>  Order::getAvailableRefundNo(),
                     'refund_status' =>  Order::REFUND_STATUS_PROCESSING
                 ]);
-                // 触发退款异步任务
                 dispatch(new RefundInstallmentOrder($order));
                 break;
             default:
