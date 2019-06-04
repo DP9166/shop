@@ -32,22 +32,18 @@ class Installment extends Model
             }
         });
     }
-
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
-
     public function items()
     {
         return $this->hasMany(InstallmentItem::class);
     }
-
     public static function findAvailableNo()
     {
         // 分期流水号前缀
@@ -60,26 +56,24 @@ class Installment extends Model
         }
         \Log::waring(sprintf('find installment no failed'));
         return false;
-     }
-
-     // 判断当前付款所有计划是否全部退款成功
-     public function refreshRefundStatus()
-     {
-         // 设定一个标志位
-         $allSuccess = true;
-         $this->load(['items']);
-
-         foreach ($this->items as $item) {
-             if ($item->paid_at && $item->refund_status !== InstallmentItem::REFUND_STATUS_SUCCESS) {
-                 $allSuccess = false;
-                 break;
-             }
-         }
-         // 如果所有退款都成功，则将对应商品订单的退款状态修改为退款成功
-         if ($allSuccess) {
-             $this->order->update([
-                 'refund_status' => Order::REFUND_STATUS_SUCCESS,
-             ]);
-         }
-     }
+    }
+    // 判断当前付款所有计划是否全部退款成功
+    public function refreshRefundStatus()
+    {
+        // 设定一个标志位
+        $allSuccess = true;
+        $this->load(['items']);
+        foreach ($this->items as $item) {
+            if ($item->paid_at && $item->refund_status !== InstallmentItem::REFUND_STATUS_SUCCESS) {
+                $allSuccess = false;
+                break;
+            }
+        }
+        // 如果所有退款都成功，则将对应商品订单的退款状态修改为退款成功
+        if ($allSuccess) {
+            $this->order->update([
+                'refund_status' => Order::REFUND_STATUS_SUCCESS,
+            ]);
+        }
+    }
 }

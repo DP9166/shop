@@ -22,7 +22,6 @@ class RefundInstallmentOrder implements ShouldQueue
     {
         $this->order = $order;
     }
-
     public function handle()
     {
         if ($this->order->payment_method !== 'installment'
@@ -53,11 +52,9 @@ class RefundInstallmentOrder implements ShouldQueue
         }
         $installment->refreshRefundStatus();
     }
-
     protected function refundInstallmentItem(InstallmentItem $item)
     {
         $refundNo = $this->order->refund_no.'_'.$item->sequence;
-
         switch ($item->payment_method) {
             case 'wechat':
                 app('wechat_pay')->refund([
