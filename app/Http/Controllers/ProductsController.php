@@ -8,55 +8,157 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductsController extends Controller
 {
     //
     public function index(Request $request, CategoryService $categoryService)
     {
-        $builder = Product::query()->where('on_sale', true);
+
+        $page = $request->input('page', 1);
+        $perPage = 16;
+
+        $params = [
+            'index' =>  'products',
+            'type'  =>  '_doc',
+            'body'  =>  [
+                'from'  =>  ($page - 1) * $perPage,
+                'size'  =>  $perPage,
+                'query' =>  [
+                    'bool'  =>  [
+                        'filter'    =>  [
+                            ['term' =>  ['on_sale'  =>  true]],
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        if ($order = $request->input('order', '')) {
+            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
+                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
+                    $params['body']['sort'] = [[$m[1]   =>  $m[2]]];
+                }
+            }
+        }
+
         if ($search = $request->input('search', '')) {
-            $like = '%'.$search.'%';
-            $builder->where(function ($query) use ($like) {
-                $query->where('title', 'like', $like)
-                    ->orWhere('description', 'like', $like)
-                    ->orWhereHas('skus', function ($query) use ($like) {
-                       $query->where('title', 'like', $like)
-                            ->orWhere('description', 'like', $like);
-                    });
-            });
+            $keywords = array_filter(explode(' ', $search));
+
+            $params['body']['query']['bool']['must'] = [];
+
+            foreach ($keywords as $keyword) {
+                $params['body']['query']['bool']['must'][] = [
+                    'multi_match' => [
+                        'query' => $keyword,
+                        'fields' => [
+                            'title^3',
+                            'long_title^2',
+                            'category^2',
+                            'description',
+                            'skus_title',
+                            'skus_description',
+                            'properties_value'
+                        ]
+                    ]
+                ];
+            }
         }
 
         if ($request->input('category_id') && $category = Category::find($request->input('category_id'))) {
             // 如果这是一个父类目
             if ($category->is_directory) {
                 // 筛选出该父类目中所有子类目的商品
-                $builder->whereHas('category', function ($query) use ($category) {
-                    $query->where('path', 'like', $category->path.$category->id.'-%');
-                });
+                $params['body']['query']['bool']['filter'][] = [
+                    'perfix'    =>  ['category_path'  => $category->path.$category->id. '-'],
+                ];
             } else {
-                $builder->where('category_id', $category->id);
+                $params['body']['query']['bool']['filter'][] = ['term'  =>  ['category_id' =>  $category->id]];
             }
         }
 
-        if ($order = $request->input('order', '')) {
-            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
-                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
-                    $builder->orderBy($m[1], $m[2]);
-                }
+
+        if ($search || isset($category)) {
+            $params['body']['aggs'] = [
+                'properties'    =>  [
+                    'nested'    =>  [
+                        'path'  =>  'properties'
+                    ],
+                    'aggs'  =>  [
+                        'properties'    =>  [
+                            'terms' =>  [
+                                'field' =>  'properties.name'
+                            ],
+                            'aggs' =>   [
+                                'value' =>  [
+                                    'terms' =>  [
+                                        'field' =>  'properties.value'
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+        }
+
+        $propertyFilters = [];
+        if ($filterString = $request->input('filters')) {
+            $filterArray = explode('|', $filterString);
+
+            foreach ($filterArray as $filter) {
+                list($name, $value) = explode(':', $filter);
+
+                $propertyFilters[$name] = $value;
+                $params['body']['query']['bool']['filter'][] = [
+                    'nested'    =>  [
+                        'path'  =>  'properties',
+                        'query' =>  [
+                            ['term' =>  ['properties.name'  =>  $name]],
+                            ['term' =>  ['properties.value'  =>  $value]],
+                        ],
+                    ]
+                ];
+
             }
         }
-        $products = $builder->paginate(16);
+
+        $result = app('es')->search($params);
+
+        $productIds = collect($result['hits']['hits'])->pluck('_id')->all();
+        $products = Product::query()->whereIn('id', $productIds)
+            ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $productIds)))->get();
+
+        $pager = new LengthAwarePaginator($products, $result['hits']['total'], $perPage, $page, [
+            'path'  =>  route('products.index', false), // 手动构建分页的 url
+        ]);
+
+        if (isset($result['aggregations'])) {
+            $properties = collect($result['aggregations']['properties']['properties']['buckets'])
+                ->map(function ($bucket) {
+                    return [
+                        'key'        =>  $bucket['key'],
+                        'values'     =>  collect($bucket['value']['buckets'])->pluck('key')->all()
+                    ];
+                })->filter(function ($property) use ($propertyFilters) {
+                    // 过滤只剩下一个值 或者 已经在筛选条件里的属性
+                    return count($property['values']) > 1 &&
+                        !isset($propertyFilters[$property['key']]);
+                });
+        }
+
 
         return view('products.index', [
-            'products'=>$products,
+            'products'=>$pager,
             'filters' => [
                 'search' => $search,
                 'order' => $order,
             ],
             // 等价于 isset($category) ? $category : null
-            'category' => $category ?? null,
-            'categoryTree'  => $categoryService->getCategoryTree()
+            'category'      => $category ?? null,
+            'categoryTree'  => $categoryService->getCategoryTree(),
+            'properties'    =>  $properties
         ]);
     }
 

@@ -63,6 +63,21 @@
                                 </div>
                             </div>
                         @endif
+                        <!-- 分面搜索结果开始 -->
+                        <!-- 遍历聚合的商品属性 -->
+                        @foreach($properties as $property)
+                            <div class="row">
+                                <!-- 输出属性名 -->
+                                <div class="col-3 filter-key">{{ $property['key'] }}：</div>
+                                <div class="col-9 filter-values">
+                                    <!-- 遍历属性值列表 -->
+                                    @foreach($property['values'] as $value)
+                                        <a href="javascript:;">{{ $value }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                        <!-- 分面搜索结果结束 -->
                     </div>
                     <!-- 展示子类目结束 -->
                     <!-- 筛选组件结束 -->
