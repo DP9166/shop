@@ -11,3 +11,4 @@ npm-debug.log
 yarn-error.log
 /public/mix-manifest.json
 /public/fonts
+.idea/workspace.xml
