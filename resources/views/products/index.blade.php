@@ -8,6 +8,7 @@
                 <div class="card-body">
                     <!-- 筛选组件开始 -->
                     <form action="{{ route('products.index') }}" class="search-form">
+                        <input type="hidden" name="filters">
                         <div class="form-row">
                             <div class="col-md-9">
                                 <div class="form-row">
@@ -21,15 +22,24 @@
                                         @foreach($category->ancestors as $ancestor)
                                             <!-- 添加一个名为该祖先类目名的链接 -->
                                                 <span class="category">
-                  <a href="{{ route('products.index', ['category_id' => $ancestor->id]) }}">{{ $ancestor->name }}</a>
-                 </span>
+                                                  <a href="{{ route('products.index', ['category_id' => $ancestor->id]) }}">{{ $ancestor->name }}</a>
+                                                 </span>
                                                 <span>&gt;</span>
                                         @endforeach
                                         <!-- 最后展示出当前类目名称 -->
                                             <span class="category">{{ $category->name }}</span><span> ></span>
                                             <!-- 当前类目的 ID，当用户调整排序方式时，可以保证 category_id 参数不丢失 -->
                                             <input type="hidden" name="category_id" value="{{ $category->id }}">
-                                        @endif
+                                    @endif
+                                    <!-- 商品属性面包屑开始 -->
+                                    <!-- 遍历当前属性筛选条件 -->
+                                    @foreach($propertyFilters as $name => $value)
+                                        <span class="filter">{{ $name }}:
+                                        <span class="filter-value">{{ $value }}</span>
+                                            <!-- 调用之后定义的 removeFilterFromQuery -->
+                                            <a class="remove-filter" href="javascript: removeFilterFromQuery('{{ $name }}')">×</a></span>
+                                    @endforeach
+                                    <!-- 商品属性面包屑结束 -->
                                     </div>
                                     <!-- 面包屑结束 -->
                                     <div class="col-auto"><input type="text" class="form-control form-control-sm" name="search" placeholder="搜索"></div>
@@ -72,7 +82,7 @@
                                 <div class="col-9 filter-values">
                                     <!-- 遍历属性值列表 -->
                                     @foreach($property['values'] as $value)
-                                        <a href="javascript:;">{{ $value }}</a>
+                                        <a href="javascript: void(0);" onclick="appendFilterToQuery('{{ $property['key'] }}', '{{ $value }}')">{{ $value }}</a>
                                     @endforeach
                                 </div>
                             </div>
@@ -115,15 +125,79 @@
 
 @section('scriptsAfterJs')
     <script>
-        console.log("787878");
         let filters = {!! json_encode($filters) !!};
         $(document).ready(function () {
             $('.search-form input[name=search]').val(filters.search);
             $('.search-form select[name=order]').val(filters.order);
 
             $('.search-form select[name=order]').on('change', function(){
+
+                // 解析当前查询参数
+                var searches = parseSearch();
+                if (searches['filters']) {
+                    $('.search-form input[name=filters]').val(searches['filters']);
+                }
                 $('.search-form').submit();
             });
-        })
+        });
+
+        function appendFilterToQuery(name, value) {
+            var searches = parseSearch();
+
+            if (searches['filters']) {
+                searches['filters'] += '|' + name + ':' + value;
+            } else {
+                searches['filters'] = name + ':' + value;
+            }
+            location.search = buildSearch(searches);
+        }
+
+        // 解析URL里的参数, 并以 Key-Value 对象形式返回
+        function parseSearch()
+        {
+            var searches = {};
+            location.search.substr(1).split('&').forEach(function (str) {
+                var result = str.split('=');
+                searches[decodeURIComponent(result[0])] = decodeURIComponent(result[1]);
+            });
+            return searches;
+        }
+
+        // 根据 Key-Value 对象构建查询参数
+        function buildSearch(searches)
+        {
+            var query = '?';
+            _.forEach(searches, function (value, key) {
+                query += encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&';
+            });
+            return query.substr(0, query.length - 1);
+        }
+        // 将某个属性 filter 从当前查询中移除
+        function removeFilterFromQuery(name) {
+            // 解析当前 Url 的查询参数
+            var searches = parseSearch();
+            // 如果没有 filters 查询则什么都不做
+            if(!searches['filters']) {
+                return;
+            }
+
+            // 初始化一个空数组
+            var filters = [];
+            // 将 filters 字符串拆解
+            searches['filters'].split('|').forEach(function (filter) {
+                // 解析出属性名和属性值
+                var result = filter.split(':');
+                // 如果当前属性名与要移除的属性名一致，则退出
+                if (result[0] === name) {
+                    return;
+                }
+                // 否则将这个 filter 放入之前初始化的数组中
+                filters.push(filter);
+            });
+            // 重建 filters 查询
+            searches['filters'] = filters.join('|');
+            // 重新构建查询参数，并触发浏览器跳转
+            location.search = buildSearch(searches);
+        }
     </script>
 @endsection

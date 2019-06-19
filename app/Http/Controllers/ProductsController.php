@@ -134,6 +134,7 @@ class ProductsController extends Controller
             'path'  =>  route('products.index', false), // 手动构建分页的 url
         ]);
 
+        $properties = [];
         if (isset($result['aggregations'])) {
             $properties = collect($result['aggregations']['properties']['properties']['buckets'])
                 ->map(function ($bucket) {
@@ -156,9 +157,10 @@ class ProductsController extends Controller
                 'order' => $order,
             ],
             // 等价于 isset($category) ? $category : null
-            'category'      => $category ?? null,
-            'categoryTree'  => $categoryService->getCategoryTree(),
-            'properties'    =>  $properties
+            'category'          => $category ?? null,
+            'categoryTree'      => $categoryService->getCategoryTree(),
+            'properties'        =>  $properties,
+            'propertyFilters'   =>  $propertyFilters
         ]);
     }
 
