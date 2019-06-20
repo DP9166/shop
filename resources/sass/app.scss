@@ -60,10 +60,7 @@ body {
   }
 }
 
-.products-index-page, .products-favorites-page {
-  .pagination {
-    margin-right: 5px;
-  }
+@mixin  product-list {
   .products-list {
     padding: 0 15px;
 
@@ -134,6 +131,14 @@ body {
       }
     }
   }
+}
+
+.products-index-page, .products-favorites-page {
+  .pagination {
+    margin-right: 5px;
+  }
+  @include product-list;
+
   .search-form {
     padding: 0 5px 10px;
 
@@ -372,6 +377,15 @@ body {
   }
   .product-description img {
     max-width: 100%;
+  }
+  .similar-products {
+    @include product-list;
+    .title {
+      font-weight: normal;
+    }
+    .price {
+      background-color: unset;
+    }
   }
 }
 
