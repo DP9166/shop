@@ -55,7 +55,6 @@ class ProductsController extends Controller
 
                 $propertyFilters[$name] = $value;
                 $builder->propertyFilter($name, $value);
-
             }
         }
 
