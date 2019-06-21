@@ -21,7 +21,7 @@
 
 LOCK TABLES `admin_menu` WRITE;
 /*!40000 ALTER TABLE `admin_menu` DISABLE KEYS */;
-INSERT INTO `admin_menu` VALUES (1,0,1,'首页','fa-bar-chart','/',NULL,NULL,'2019-05-08 17:31:14'),(2,0,9,'系统管理','fa-tasks',NULL,NULL,NULL,'2019-05-25 14:58:59'),(3,2,10,'管理员','fa-users','auth/users',NULL,NULL,'2019-05-25 14:58:59'),(4,2,11,'角色','fa-user','auth/roles',NULL,NULL,'2019-05-25 14:58:59'),(5,2,12,'权限','fa-ban','auth/permissions',NULL,NULL,'2019-05-25 14:58:59'),(6,2,13,'菜单','fa-bars','auth/menu',NULL,NULL,'2019-05-25 14:58:59'),(7,2,14,'操作日志','fa-history','auth/logs',NULL,NULL,'2019-05-25 14:59:00'),(8,0,2,'用户管理','fa-user','/users',NULL,'2019-05-08 17:35:00','2019-05-08 17:40:34'),(9,0,5,'商品管理','fa-cubes','/products',NULL,'2019-05-08 17:49:36','2019-05-20 14:17:21'),(10,0,8,'订单管理','fa-rmb','/orders',NULL,'2019-05-11 17:45:12','2019-05-25 14:58:59'),(11,0,4,'优惠价管理','fa-tags','/coupon_codes',NULL,'2019-05-15 14:52:00','2019-05-20 14:17:21'),(12,0,3,'类目管理','fa-bars','/categories',NULL,'2019-05-20 14:16:53','2019-05-20 14:17:21'),(13,9,7,'众筹商品','fa-bars','/crowdfunding_products',NULL,'2019-05-25 14:55:40','2019-05-25 14:58:58'),(14,9,6,'普通商品','fa-adjust','/products',NULL,'2019-05-25 14:58:46','2019-05-25 14:58:58');
+INSERT INTO `admin_menu` VALUES (1,0,1,'首页','fa-bar-chart','/',NULL,NULL,'2019-05-08 17:31:14'),(2,0,9,'系统管理','fa-tasks',NULL,NULL,NULL,'2019-05-25 14:58:59'),(3,2,10,'管理员','fa-users','auth/users',NULL,NULL,'2019-05-25 14:58:59'),(4,2,11,'角色','fa-user','auth/roles',NULL,NULL,'2019-05-25 14:58:59'),(5,2,12,'权限','fa-ban','auth/permissions',NULL,NULL,'2019-05-25 14:58:59'),(6,2,13,'菜单','fa-bars','auth/menu',NULL,NULL,'2019-05-25 14:58:59'),(7,2,14,'操作日志','fa-history','auth/logs',NULL,NULL,'2019-05-25 14:59:00'),(8,0,2,'用户管理','fa-user','/users',NULL,'2019-05-08 17:35:00','2019-05-08 17:40:34'),(9,0,5,'商品管理','fa-cubes','/products',NULL,'2019-05-08 17:49:36','2019-05-20 14:17:21'),(10,0,8,'订单管理','fa-rmb','/orders',NULL,'2019-05-11 17:45:12','2019-05-25 14:58:59'),(11,0,4,'优惠价管理','fa-tags','/coupon_codes',NULL,'2019-05-15 14:52:00','2019-05-20 14:17:21'),(12,0,3,'类目管理','fa-bars','/categories',NULL,'2019-05-20 14:16:53','2019-05-20 14:17:21'),(13,9,7,'众筹商品','fa-bars','/crowdfunding_products',NULL,'2019-05-25 14:55:40','2019-05-25 14:58:58'),(14,9,6,'普通商品','fa-adjust','/products',NULL,'2019-05-25 14:58:46','2019-05-25 14:58:58'),(15,9,0,'秒杀商品','fa-bolt','/seckill_products',NULL,'2019-06-21 14:44:20','2019-06-21 14:44:20');
 /*!40000 ALTER TABLE `admin_menu` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -90,7 +90,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `admin_users` WRITE;
 /*!40000 ALTER TABLE `admin_users` DISABLE KEYS */;
-INSERT INTO `admin_users` VALUES (1,'admin','$2y$10$TbMuTFhNJig.s0csl/ceku/FjppZsVvayF6rwWYhamvsKAKoMVbe2','Administrator',NULL,'q6WWenB3poVtoNexhJ1qJT24mxSXeGIYL0uFOpeACw1vPENNitzLg5SLrQT5','2019-05-07 17:53:41','2019-05-07 17:53:41'),(2,'operator','$2y$10$GN7AHJbZuHG2Y7pYvAaoGegbRllpFTLkNdhFEicxc0MP5hR1ozmji','运营',NULL,'VhhLuIEbMWu6cgi9TAPpEVd33H0jpqsFgLfSwm5jZY1SD7FHyxNibq1ErHlO','2019-05-08 17:45:29','2019-05-08 17:45:29');
+INSERT INTO `admin_users` VALUES (1,'admin','$2y$10$TbMuTFhNJig.s0csl/ceku/FjppZsVvayF6rwWYhamvsKAKoMVbe2','Administrator',NULL,'XJCwk6naHt2XfxfzJ9GV2WPPF1jsixJ2dCWS8oRUDjEmGzBpNUEEhx72uITM','2019-05-07 17:53:41','2019-05-07 17:53:41'),(2,'operator','$2y$10$GN7AHJbZuHG2Y7pYvAaoGegbRllpFTLkNdhFEicxc0MP5hR1ozmji','运营',NULL,'VhhLuIEbMWu6cgi9TAPpEVd33H0jpqsFgLfSwm5jZY1SD7FHyxNibq1ErHlO','2019-05-08 17:45:29','2019-05-08 17:45:29');
 /*!40000 ALTER TABLE `admin_users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -103,4 +103,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-25 23:29:16
+-- Dump completed on 2019-06-21 22:49:47
